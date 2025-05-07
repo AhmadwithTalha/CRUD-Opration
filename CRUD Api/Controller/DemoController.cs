@@ -37,7 +37,7 @@ namespace CRUD_Api.Controller
         }
         [HttpGet("ShowStudentData")]
 
-       public async Task<IActionResult> AddStudnet()
+        public async Task<IActionResult> AddStudnet()
         {
             var data = await _dbcontext.Data.ToListAsync();
             return Ok(data);
@@ -66,7 +66,30 @@ namespace CRUD_Api.Controller
 
             return Ok("Student Data is Updated");
 
-
         }
+
+        //[HttpGet("SearchAnyStudent")]
+        //public async Task<IActionResult> ShowTheStudentData(int id)
+        //{
+        //    var student = await _dbcontext.Data.FirstOrDefaultAsync(n => n.Id == id);
+
+        //    if (student == null)
+        //    {
+        //        return NotFound($"Student with ID {id} not found.");
+        //    }
+
+        //    return Ok(student);
+        //}
+        [HttpGet("ShowData")]
+        public async Task <IActionResult> showData(int id)
+        {
+             var data = _dbcontext.Data.FirstOrDefault(n=>n.Id== id);
+            if(data == null)
+            {
+                return BadRequest("student not found");
+            }
+            return Ok(data);
+        }
+
     }
 }
