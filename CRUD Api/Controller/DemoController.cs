@@ -1,14 +1,21 @@
-﻿using CRUD_Api.DB;
+﻿using System.Security.Cryptography.Xml;
+using CRUD_Api.DB;
 using CRUD_Api.Model;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+
+
 namespace CRUD_Api.Controller
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
+ 
     public class DemoController : ControllerBase
     {
         private readonly dbcontext _dbcontext;
@@ -17,32 +24,97 @@ namespace CRUD_Api.Controller
         {
             _dbcontext = dbcontext;
         }
-        [HttpPost("AddStudent")]
+        //[HttpPost("AddStudent")]
 
-        public async Task<IActionResult> AddStudent([FromBody] crudclass cd)
+        //[HttpPost("AddStudent")]
+        //public async Task<IActionResult> AddStudent([FromBody] StudentDTO cd)
+        //{
+        //    if (cd.Password != cd.ConfirmPassword)
+        //        return BadRequest("Password and Confirm Password do not match.");
+
+        //    // Lookup DepartmentID from DepartmentName
+        //    var department = await _dbcontext.Departments
+        //        .FirstOrDefaultAsync(d => d.DepartmentName == cd.DepartmentName);
+
+        //    if (department == null)
+        //        return BadRequest("Department not found.");
+
+        //    var add = new crudclass
+        //    {
+        //        Name = cd.Name,
+        //        Fathername = cd.Fathername,
+        //        Dateofbirth = cd.Dateofbirth,
+        //        Password = cd.Password,
+        //        DepartmentID = department.DepartmentID
+        //    };
+
+        //    _dbcontext.Add(add);
+        //    await _dbcontext.SaveChangesAsync();
+
+        //    return Ok("Student Added Successfully");
+        //}
+
+        [HttpPost("AddStudent")]
+        //[Authorize]
+
+        public async Task<IActionResult> AddStudent([FromBody] StudentDTO cd)
         {
+            if (cd.Password != cd.ConfirmPassword)
+                return BadRequest("Password and Confirm Password do not match.");
+
+            // ✅ Check if the DepartmentID is valid (not name)
+            var department = await _dbcontext.Departments
+                .FirstOrDefaultAsync(d => d.DepartmentID == cd.DepartmentID);
+
+            if (department == null)
+                return BadRequest("Department not found.");
+
             var add = new crudclass
             {
-                //Id = cd.Id,
                 Name = cd.Name,
                 Fathername = cd.Fathername,
                 Dateofbirth = cd.Dateofbirth,
+                Password = cd.Password,
+                DepartmentID = cd.DepartmentID   // ✅ use directly from frontend
             };
+
             _dbcontext.Add(add);
             await _dbcontext.SaveChangesAsync();
 
-
-            return Ok("Student  Added SuccessFully");
-
+            return Ok("Student Added Successfully");
         }
+
+
         [HttpGet("ShowStudentData")]
-
-        public async Task<IActionResult> AddStudnet()
+        //[Authorize]
+        public async Task<IActionResult> ShowStudentData()
         {
+            //var data = await _dbcontext.Data
+            //    .Include(s => s.Department) // ensure department info is loaded
+            //    .ToListAsync();
             var data = await _dbcontext.Data.ToListAsync();
-            return Ok(data);
+
+
+            if (data == null || !data.Any())
+            {
+                return NotFound("No students found.");
+            }
+
+            var studentDTOs = data.Select(n => new StudentDTO
+            {
+                Id = n.Id,
+                Name = n.Name,
+                Fathername = n.Fathername,
+                Dateofbirth = n.Dateofbirth,
+                DepartmentID = n.DepartmentID, // only if StudentDTO has this property
+                //DepartmentName = n.Department?.DepartmentName ?? ""
+            }).ToList();
+
+            return Ok(studentDTOs);
         }
-        [HttpDelete("DeleteStudentData")]
+
+        [HttpDelete("DeleteStudentData/{id}")]
+        //[Authorize]
         public async Task<IActionResult> DeleteStudent(int id)
         {
             var data = await _dbcontext.Data.FirstOrDefaultAsync(n => n.Id == id);
@@ -52,14 +124,23 @@ namespace CRUD_Api.Controller
 
             return Ok("Student Deleted Successfully");
         }
-        [HttpPut("UpdateStudetData")]
-        public async Task<IActionResult> UpdateStudentData(int id, [FromBody]crudclass put)
+        [HttpPut("UpdateStudetData/{id}")]
+        //[Authorize]
+        public async Task<IActionResult> UpdateStudentData(int id, [FromBody]StudentDTO put)
         {
-            var data = await _dbcontext.Data.FirstOrDefaultAsync(n =>n.Id == id);
-
+            if (put == null)
+            {
+                return BadRequest("NOt Found");
+            }
+            var data =  _dbcontext.Data.FirstOrDefault(n =>n.Id == id);
+            if(data == null)
+            {
+                return BadRequest("Data not found");
+            }
             data.Name = put.Name;
             data.Fathername = put.Fathername;
             data.Dateofbirth = put.Dateofbirth;
+            data.DepartmentID = put.DepartmentID;
 
             _dbcontext.Data.Update(data);
             await _dbcontext.SaveChangesAsync();
@@ -68,19 +149,9 @@ namespace CRUD_Api.Controller
 
         }
 
-        //[HttpGet("SearchAnyStudent")]
-        //public async Task<IActionResult> ShowTheStudentData(int id)
-        //{
-        //    var student = await _dbcontext.Data.FirstOrDefaultAsync(n => n.Id == id);
-
-        //    if (student == null)
-        //    {
-        //        return NotFound($"Student with ID {id} not found.");
-        //    }
-
-        //    return Ok(student);
-        //}
-        [HttpGet("ShowData")]
+        
+        [HttpGet("ShowDataById/{id}")]
+        //[Authorize]
         public async Task <IActionResult> showData(int id)
         {
              var data = _dbcontext.Data.FirstOrDefault(n=>n.Id== id);

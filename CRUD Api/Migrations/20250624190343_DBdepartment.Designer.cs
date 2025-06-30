@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRUD_Api.Migrations
 {
     [DbContext(typeof(dbcontext))]
-    [Migration("20250506141658_Demomi")]
-    partial class Demomi
+    [Migration("20250624190343_DBdepartment")]
+    partial class DBdepartment
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,23 @@ namespace CRUD_Api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("CRUD_Api.Model.Department", b =>
+                {
+                    b.Property<int>("DepartmentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DepartmentID"));
+
+                    b.Property<string>("DepartmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("DepartmentID");
+
+                    b.ToTable("Departments");
+                });
 
             modelBuilder.Entity("CRUD_Api.Model.crudclass", b =>
                 {
@@ -36,6 +53,9 @@ namespace CRUD_Api.Migrations
                     b.Property<DateOnly>("Dateofbirth")
                         .HasColumnType("date");
 
+                    b.Property<int>("DepartmentID")
+                        .HasColumnType("int");
+
                     b.Property<string>("Fathername")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -44,9 +64,26 @@ namespace CRUD_Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("DepartmentID");
+
                     b.ToTable("Data");
+                });
+
+            modelBuilder.Entity("CRUD_Api.Model.crudclass", b =>
+                {
+                    b.HasOne("CRUD_Api.Model.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
                 });
 #pragma warning restore 612, 618
         }

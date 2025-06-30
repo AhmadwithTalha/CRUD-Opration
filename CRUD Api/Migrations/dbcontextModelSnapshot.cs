@@ -22,6 +22,23 @@ namespace CRUD_Api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("CRUD_Api.Model.Department", b =>
+                {
+                    b.Property<int>("DepartmentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DepartmentID"));
+
+                    b.Property<string>("DepartmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("DepartmentID");
+
+                    b.ToTable("Departments");
+                });
+
             modelBuilder.Entity("CRUD_Api.Model.crudclass", b =>
                 {
                     b.Property<int>("Id")
@@ -33,6 +50,9 @@ namespace CRUD_Api.Migrations
                     b.Property<DateOnly>("Dateofbirth")
                         .HasColumnType("date");
 
+                    b.Property<int>("DepartmentID")
+                        .HasColumnType("int");
+
                     b.Property<string>("Fathername")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -41,9 +61,26 @@ namespace CRUD_Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("DepartmentID");
+
                     b.ToTable("Data");
+                });
+
+            modelBuilder.Entity("CRUD_Api.Model.crudclass", b =>
+                {
+                    b.HasOne("CRUD_Api.Model.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
                 });
 #pragma warning restore 612, 618
         }

@@ -10,5 +10,6 @@ namespace CRUD_Api.DB
 
         }
         public DbSet<crudclass> Data {  get; set; }
+        public DbSet<Department> Departments { get; set; }
     }
 }
